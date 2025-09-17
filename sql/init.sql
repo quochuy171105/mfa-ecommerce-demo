@@ -1,0 +1,1 @@
+-- Script tạo DB/table: users (id, email, pass_hash), otps (user_id, encrypted_otp, expiry, nonce), faces (user_id, face_hash).

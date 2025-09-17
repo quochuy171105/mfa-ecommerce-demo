@@ -1,0 +1,1 @@
+// JS cho face: Init Face-api, detect face, compute descriptor hash.

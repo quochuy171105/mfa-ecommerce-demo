@@ -1,0 +1,1 @@
+// JS bảo mật: Disable paste on pass fields, CSRF token append to forms.
