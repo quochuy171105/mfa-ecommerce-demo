@@ -1,2 +1,4 @@
 <?php
-// Form đăng nhập: POST pass to Auth::verify, nếu OK → redirect mfa.php.
+// Tạo file: pages/login.php
+echo "Login page works!";
+?>
