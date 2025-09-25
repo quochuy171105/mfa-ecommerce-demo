@@ -4,6 +4,7 @@ if (!defined('AES_KEY')) {
     define('AES_KEY', bin2hex(random_bytes(32)));
 }
 
+define('JWT_SECRET', 'your-jwt-secret-change-in-production');
 define('SESSION_TIMEOUT', 3600);
 define('RATE_LIMIT', 5);
 

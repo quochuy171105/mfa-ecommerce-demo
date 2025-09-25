@@ -1,12 +1,21 @@
 <?php
 // Xử lý auth: Session start với JWT (signed HMAC-SHA256), logout.
 
+require_once __DIR__ . '/../config/app.php'; // Sử dụng JWT_SECRET, SESSION_TIMEOUT
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/validation.php';
 require_once __DIR__ . '/User.php';
 
 class Auth {
-    private static $jwt_secret = 'your-jwt-secret-change-in-production';
+    private static $jwt_secret = null;
+
+    private static function getSecret() {
+        if (self::$jwt_secret === null) {
+            self::$jwt_secret = defined('JWT_SECRET') ? JWT_SECRET : 'your-jwt-secret-change-in-production';
+        }
+        return self::$jwt_secret;
+    }
     
     /**
      * Đăng nhập người dùng
@@ -47,19 +56,20 @@ class Auth {
                 'user_id' => $user['id'],
                 'email' => $user['email'],
                 'iat' => time(),
-                'exp' => time() + 3600 // Hết hạn sau 1 giờ
+                'exp' => time() + SESSION_TIMEOUT // Từ app.php
             ];
             
-            $jwt_token = create_jwt($payload, self::$jwt_secret);
+            $jwt_token = create_jwt($payload, self::getSecret());
             
             // Lưu JWT vào session
             start_secure_session();
             $_SESSION['jwt_token'] = $jwt_token;
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['email'] = $user['email'];
+            session_write_close(); // Đảm bảo lưu session
             
-            // Cập nhật last login
-            User::updateLastLogin($user['id']);
+            // Cập nhật last login 
+             User::updateLastLogin($user['id']);
             
             return [
                 'success' => true,
@@ -90,7 +100,7 @@ class Auth {
         }
         
         // Xác minh JWT token
-        $payload = verify_jwt($_SESSION['jwt_token'], self::$jwt_secret);
+        $payload = verify_jwt($_SESSION['jwt_token'], self::getSecret());
         
         if (!$payload) {
             // Token không hợp lệ, xóa session
@@ -175,11 +185,12 @@ class Auth {
             'user_id' => $auth['user_id'],
             'email' => $auth['email'],
             'iat' => time(),
-            'exp' => time() + 3600
+            'exp' => time() + SESSION_TIMEOUT
         ];
         
-        $new_token = create_jwt($payload, self::$jwt_secret);
+        $new_token = create_jwt($payload, self::getSecret());
         $_SESSION['jwt_token'] = $new_token;
+        session_write_close();
         
         return true;
     }

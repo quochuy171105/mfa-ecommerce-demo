@@ -1,6 +1,7 @@
 <?php
 // Include header, form email/pass, POST Auth::login+rate limit, chuyển hướng mfa nếu OK, error+log nếu thất bại.
 
+ob_start();
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../classes/Auth.php';
 
@@ -38,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($result['success']) {
                     $success_message = $result['message'];
                     // Chuyển hướng đến trang MFA
+                    session_write_close();
                     header('Location: mfa.php');
                     exit;
                 } else {
@@ -52,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Tạo CSRF token mới
 $csrf_token = gen_csrf();
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -128,7 +131,7 @@ $csrf_token = gen_csrf();
         .btn {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #08030cff 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -170,21 +173,6 @@ $csrf_token = gen_csrf();
             border-left: 4px solid #363;
         }
         
-        .register-link {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-        
-        .register-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .register-link a:hover {
-            text-decoration: underline;
-        }
-        
         .forgot-password {
             text-align: center;
             margin-top: 1rem;
@@ -197,6 +185,21 @@ $csrf_token = gen_csrf();
         }
         
         .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .register-link a:hover {
             text-decoration: underline;
         }
         
@@ -273,15 +276,6 @@ $csrf_token = gen_csrf();
             btn.disabled = true;
             btn.textContent = 'Đang đăng nhập...';
             loading.style.display = 'block';
-            
-            // Nếu có lỗi, reset button sau 3 giây
-            setTimeout(() => {
-                if (btn.disabled) {
-                    btn.disabled = false;
-                    btn.textContent = 'Đăng Nhập';
-                    loading.style.display = 'none';
-                }
-            }, 3000);
         });
         
         // Auto focus on email field

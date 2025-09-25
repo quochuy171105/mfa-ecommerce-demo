@@ -27,3 +27,4 @@ CREATE TABLE IF NOT EXISTS faces (
 ALTER TABLE users ADD INDEX idx_email (email);
 ALTER TABLE otps ADD INDEX idx_user_id (user_id);
 ALTER TABLE faces ADD INDEX idx_user_id (user_id);
+ALTER TABLE users ADD COLUMN last_login DATETIME NULL;

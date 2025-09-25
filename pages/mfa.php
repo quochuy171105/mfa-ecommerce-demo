@@ -6,6 +6,13 @@ require_once __DIR__ . '/../classes/Auth.php';
 
 start_secure_session();
 
+// Xử lý logout
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    Auth::logout();
+    header('Location: login.php');
+    exit;
+}
+
 // Kiểm tra user đã đăng nhập chưa
 $auth = Auth::isAuthenticated();
 if (!$auth) {
@@ -31,16 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['mfa_type'] = $mfa_type;
             $_SESSION['mfa_step'] = 'verify';
             
+            // Log MFA selection
+            error_log("MFA type selected: $mfa_type by user: " . $auth['email']);
+            
             // Chuyển hướng đến trang xử lý tương ứng
-            if ($mfa_type === 'otp') {
-                $success_message = 'Đã chọn xác thực qua Email OTP';
-                // Trong thực tế sẽ chuyển đến otp.php
-                header('refresh:1;url=#otp-handler');
-            } else {
-                $success_message = 'Đã chọn xác thực qua Face Recognition';
-                // Trong thực tế sẽ chuyển đến face.php  
-                header('refresh:1;url=#face-handler');
-            }
+            $redirect = ($mfa_type === 'otp') ? 'otp.php' : 'face.php';
+            header("Location: $redirect");
+            exit;
         }
     }
 }
@@ -63,7 +67,7 @@ $current_user = Auth::getCurrentUser();
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -72,7 +76,7 @@ $current_user = Auth::getCurrentUser();
             align-items: center;
             justify-content: center;
         }
-        
+
         .mfa-container {
             background: white;
             padding: 2rem;
@@ -81,23 +85,23 @@ $current_user = Auth::getCurrentUser();
             width: 100%;
             max-width: 500px;
         }
-        
+
         .mfa-header {
             text-align: center;
             margin-bottom: 2rem;
         }
-        
+
         .mfa-header h1 {
             color: #333;
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .mfa-header p {
             color: #666;
             font-size: 0.9rem;
         }
-        
+
         .user-info {
             background: #f8f9fa;
             padding: 1rem;
@@ -105,19 +109,19 @@ $current_user = Auth::getCurrentUser();
             margin-bottom: 2rem;
             text-align: center;
         }
-        
+
         .user-info .email {
             color: #667eea;
             font-weight: 500;
         }
-        
+
         .mfa-options {
             display: flex;
             flex-direction: column;
             gap: 1rem;
             margin-bottom: 2rem;
         }
-        
+
         .mfa-option {
             border: 2px solid #ddd;
             border-radius: 10px;
@@ -126,27 +130,27 @@ $current_user = Auth::getCurrentUser();
             transition: all 0.3s;
             position: relative;
         }
-        
+
         .mfa-option:hover {
             border-color: #667eea;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .mfa-option input[type="radio"] {
             position: absolute;
             opacity: 0;
         }
-        
+
         .mfa-option input[type="radio"]:checked + .option-content {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .mfa-option input[type="radio"]:checked ~ .option-icon {
             color: white;
         }
-        
+
         .option-content {
             display: flex;
             align-items: center;
@@ -155,23 +159,25 @@ $current_user = Auth::getCurrentUser();
             border-radius: 6px;
             padding: 0.5rem;
         }
-        
+
         .option-icon {
             font-size: 2rem;
             color: #667eea;
             transition: color 0.3s;
+            min-width: 50px;
+            text-align: center;
         }
-        
+
         .option-details h3 {
             margin-bottom: 0.5rem;
             font-size: 1.2rem;
         }
-        
+
         .option-details p {
             font-size: 0.9rem;
             opacity: 0.8;
         }
-        
+
         .btn {
             width: 100%;
             padding: 12px;
@@ -184,16 +190,16 @@ $current_user = Auth::getCurrentUser();
             cursor: pointer;
             transition: transform 0.2s;
         }
-        
+
         .btn:hover:not(:disabled) {
             transform: translateY(-2px);
         }
-        
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        
+
         .error-message {
             background: #fee;
             color: #c33;
@@ -202,7 +208,7 @@ $current_user = Auth::getCurrentUser();
             margin-bottom: 1rem;
             border-left: 4px solid #c33;
         }
-        
+
         .success-message {
             background: #efe;
             color: #363;
@@ -211,22 +217,22 @@ $current_user = Auth::getCurrentUser();
             margin-bottom: 1rem;
             border-left: 4px solid #363;
         }
-        
+
         .logout-link {
             text-align: center;
             margin-top: 1.5rem;
         }
-        
+
         .logout-link a {
             color: #666;
             text-decoration: none;
             font-size: 0.9rem;
         }
-        
+
         .logout-link a:hover {
             text-decoration: underline;
         }
-        
+
         .security-note {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -244,45 +250,45 @@ $current_user = Auth::getCurrentUser();
             <h1>Xác Thực Bảo Mật</h1>
             <p>Chọn phương thức xác thực để hoàn tất đăng nhập</p>
         </div>
-        
+
         <?php if ($current_user): ?>
-        <div class="user-info">
-            <p>Đăng nhập với tài khoản: <span class="email"><?php echo htmlspecialchars($current_user['email']); ?></span></p>
-        </div>
+            <div class="user-info">
+                <p>Đăng nhập với tài khoản: <span class="email"><?php echo htmlspecialchars($current_user['email']); ?></span></p>
+            </div>
         <?php endif; ?>
-        
+
         <div class="security-note">
-            <strong></strong>Lưu ý bảo mật:</strong> Xác thực đa yếu tố giúp bảo vệ tài khoản của bạn khỏi truy cập trái phép.
+            <strong>Lưu ý bảo mật:</strong> Xác thực đa yếu tố giúp bảo vệ tài khoản của bạn khỏi truy cập trái phép.
         </div>
-        
+
         <?php if ($error_message): ?>
             <div class="error-message">
                 <?php echo htmlspecialchars($error_message); ?>
             </div>
         <?php endif; ?>
-        
+
         <?php if ($success_message): ?>
             <div class="success-message">
                 <?php echo htmlspecialchars($success_message); ?>
                 <br><small>Đang chuyển hướng...</small>
             </div>
         <?php endif; ?>
-        
+
         <form method="POST" action="" id="mfaForm">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-            
+
             <div class="mfa-options">
                 <label class="mfa-option">
                     <input type="radio" name="mfa_type" value="otp" required>
                     <div class="option-content">
-                        <div class="option-icon">📧</div>
+                        <div class="option-icon">✉️</div>
                         <div class="option-details">
                             <h3>Email OTP</h3>
                             <p>Nhận mã xác thực 6 số qua email</p>
                         </div>
                     </div>
                 </label>
-                
+
                 <label class="mfa-option">
                     <input type="radio" name="mfa_type" value="face" required>
                     <div class="option-content">
@@ -294,51 +300,51 @@ $current_user = Auth::getCurrentUser();
                     </div>
                 </label>
             </div>
-            
+
             <button type="submit" class="btn" id="continueBtn" disabled>
                 Tiếp Tục Xác Thực
             </button>
         </form>
-        
+
         <div class="logout-link">
             <a href="?action=logout" onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
                 Đăng xuất và quay lại trang đăng nhập
             </a>
         </div>
     </div>
-    
+
     <script>
         // Enable/disable continue button based on selection
         const radioButtons = document.querySelectorAll('input[name="mfa_type"]');
         const continueBtn = document.getElementById('continueBtn');
-        
+
         radioButtons.forEach(radio => {
             radio.addEventListener('change', function() {
                 continueBtn.disabled = false;
-                continueBtn.textContent = `Tiếp tục với ${this.value === 'otp' ? 'Email OTP' : 'Face Recognition'}`;
+                const methodName = this.value === 'otp' ? 'Email OTP' : 'Face Recognition';
+                continueBtn.textContent = `Tiếp tục với ${methodName}`;
             });
         });
-        
+
         // Form submission handling
         document.getElementById('mfaForm').addEventListener('submit', function(e) {
+            if (continueBtn.disabled) {
+                e.preventDefault();
+                alert('Vui lòng chọn phương thức xác thực');
+                return;
+            }
+            
             continueBtn.disabled = true;
             continueBtn.textContent = 'Đang xử lý...';
         });
-        
-        // Auto-select first option if only one is available
-        if (radioButtons.length === 1) {
-            radioButtons[0].checked = true;
-            radioButtons[0].dispatchEvent(new Event('change'));
+
+        // Auto-select first option if user has preference in session
+        // This could be enhanced based on user's previous choices
+        const firstOption = document.querySelector('input[name="mfa_type"]');
+        if (firstOption) {
+            // Optional: auto-focus first option but don't auto-select
+            firstOption.focus();
         }
     </script>
 </body>
 </html>
-
-<?php
-// Xử lý logout
-if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    Auth::logout();
-    header('Location: login.php');
-    exit;
-}
-?>

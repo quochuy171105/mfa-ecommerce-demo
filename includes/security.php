@@ -1,10 +1,12 @@
 <?php
 // Bảo mật core: Hash/verify pass (bcrypt), AES encrypt/decrypt OTP, nonce gen.
 
+require_once __DIR__ . '/../config/app.php'; // Sử dụng AES_KEY từ config
+
 /**
  * Mã hóa AES-256-CBC
  */
-function encrypt_aes($data, $key) {
+function encrypt_aes($data, $key = AES_KEY) {
     $iv = random_bytes(16);
     $encrypted = openssl_encrypt($data, 'aes-256-cbc', $key, 0, $iv);
     
@@ -19,7 +21,7 @@ function encrypt_aes($data, $key) {
 /**
  * Giải mã AES-256-CBC
  */
-function decrypt_aes($encrypted_data, $key) {
+function decrypt_aes($encrypted_data, $key = AES_KEY) {
     $data = base64_decode($encrypted_data);
     
     if ($data === false || strlen($data) < 16) {
@@ -70,9 +72,7 @@ function gen_otp() {
  * Tạo secret key cho AES từ config
  */
 function get_encryption_key() {
-    // Trong thực tế, key này nên được lưu trong biến môi trường
-    $key = hash('sha256', 'your-secret-key-here-change-in-production', true);
-    return $key;
+    return AES_KEY; // Từ config/app.php
 }
 
 /**
@@ -80,13 +80,13 @@ function get_encryption_key() {
  */
 function create_jwt($payload, $secret) {
     $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
-    $payload = json_encode($payload);
+    $payload_json = json_encode($payload);
     
-    $header_encoded = base64url_encode($header);
-    $payload_encoded = base64url_encode($payload);
+    $header_encoded = rtrim(strtr(base64_encode($header), '+/', '-_'), '=');
+    $payload_encoded = rtrim(strtr(base64_encode($payload_json), '+/', '-_'), '=');
     
     $signature = hash_hmac('sha256', $header_encoded . "." . $payload_encoded, $secret, true);
-    $signature_encoded = base64url_encode($signature);
+    $signature_encoded = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
     
     return $header_encoded . "." . $payload_encoded . "." . $signature_encoded;
 }
@@ -101,9 +101,16 @@ function verify_jwt($token, $secret) {
         return false;
     }
     
-    $header = base64url_decode($parts[0]);
-    $payload = base64url_decode($parts[1]);
-    $signature = base64url_decode($parts[2]);
+    // Decode header và payload
+    $header = json_decode(base64_decode(str_pad(strtr($parts[0], '-_', '+/'), strlen($parts[0]) % 4, '=', STR_PAD_RIGHT)), true);
+    $payload = json_decode(base64_decode(str_pad(strtr($parts[1], '-_', '+/'), strlen($parts[1]) % 4, '=', STR_PAD_RIGHT)), true);
+    
+    if (!$header || !$payload) {
+        return false;
+    }
+    
+    // Decode signature as binary
+    $signature = base64_decode(str_pad(strtr($parts[2], '-_', '+/'), strlen($parts[2]) % 4, '=', STR_PAD_RIGHT));
     
     $expected_signature = hash_hmac('sha256', $parts[0] . "." . $parts[1], $secret, true);
     
@@ -111,27 +118,11 @@ function verify_jwt($token, $secret) {
         return false;
     }
     
-    $payload_data = json_decode($payload, true);
-    
     // Kiểm tra expiration
-    if (isset($payload_data['exp']) && $payload_data['exp'] < time()) {
+    if (isset($payload['exp']) && $payload['exp'] < time()) {
         return false;
     }
     
-    return $payload_data;
-}
-
-/**
- * Base64 URL safe encode
- */
-function base64url_encode($data) {
-    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-}
-
-/**
- * Base64 URL safe decode
- */
-function base64url_decode($data) {
-    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+    return $payload;
 }
 ?>
