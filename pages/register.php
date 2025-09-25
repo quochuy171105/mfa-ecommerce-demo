@@ -117,6 +117,12 @@ $csrf_token = gen_csrf();
             border-color: #667eea;
         }
         
+        .password-requirements {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
         .btn {
             width: 100%;
             padding: 12px;
@@ -170,20 +176,13 @@ $csrf_token = gen_csrf();
         .login-link a:hover {
             text-decoration: underline;
         }
-        
-        .password-requirements {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 0.5rem;
-            line-height: 1.4;
-        }
     </style>
 </head>
 <body>
     <div class="register-container">
         <div class="register-header">
             <h1>Đăng Ký</h1>
-            <p>Tạo tài khoản mới để bắt đầu</p>
+            <p>Tạo tài khoản mới</p>
         </div>
         
         <?php if ($error_message): ?>
@@ -195,11 +194,10 @@ $csrf_token = gen_csrf();
         <?php if ($success_message): ?>
             <div class="success-message">
                 <?php echo htmlspecialchars($success_message); ?>
-                <br><small>Đang chuyển hướng đến trang đăng nhập...</small>
             </div>
         <?php endif; ?>
         
-        <form method="POST" action="" autocomplete="off">
+        <form method="POST" action="" id="registerForm">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             
             <div class="form-group">
@@ -208,8 +206,7 @@ $csrf_token = gen_csrf();
                        id="email" 
                        name="email" 
                        required 
-                       autocomplete="off"
-                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                       autocomplete="email">
             </div>
             
             <div class="form-group">
