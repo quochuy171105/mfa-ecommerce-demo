@@ -1,1 +1,272 @@
 /* Styles cho login/register/mfa: Secure input fields (no autocomplete). */
+/* ===== AUTH.CSS - Face Authentication Styles ===== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+h1 {
+    color: white;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Container cho các buttons */
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Styling cho tất cả buttons */
+button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Button Register Face */
+#registerFace {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+#registerFace:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Button Scan Face - BLUE */
+#scanFace {
+    background: #2196F3;
+    color: white;
+}
+
+#scanFace:hover {
+    background: #1976D2;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+}
+
+/* Button Register Again */
+#registerAgain {
+    background: #FF9800;
+    color: white;
+}
+
+#registerAgain:hover {
+    background: #F57C00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 152, 0, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Video element - Tăng lên 480px, bỏ viền đen */
+#video {
+    width: 480px;
+    height: auto;
+    border: none; /* Bỏ viền đen */
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    background: #000;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Canvas overlay cho face detection - Tăng lên 480px, bỏ viền đen */
+canvas {
+    position: absolute;
+    width: 480px !important;
+    height: auto !important;
+    border: none; /* Bỏ viền đen */
+    border-radius: 12px;
+    pointer-events: none;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 20px;
+}
+
+/* Container cho video - Điều chỉnh margin-top để xít lên */
+.video-container {
+    position: relative;
+    display: inline-block;
+    margin-top: -20px; /* Xít lên 2cm (20px) */
+}
+
+/* Status messages */
+#status, .message {
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin: 15px 0;
+    text-align: center;
+    font-weight: 500;
+    max-width: 500px;
+}
+
+.message.success {
+    background: rgba(76, 175, 80, 0.9);
+}
+
+.message.error {
+    background: rgba(244, 67, 54, 0.9);
+}
+
+.message.info {
+    background: rgba(33, 150, 243, 0.9);
+}
+
+.message.warning {
+    background: rgba(255, 152, 0, 0.9);
+}
+
+/* Input password - FONT MONOSPACE */
+input[type="password"],
+input[type="text"] {
+    font-family: 'Courier New', Courier, monospace;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px 0;
+    transition: border-color 0.3s;
+}
+
+input[type="password"]:focus,
+input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Form container */
+.auth-form {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Loading spinner */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8em;
+    }
+    
+    #video {
+        width: 100%;
+        max-width: 480px; /* Giữ max-width là 480px thay vì 300px */
+    }
+    
+    canvas {
+        width: 100% !important;
+        max-width: 480px !important; /* Giữ max-width là 480px thay vì 300px */
+    }
+    
+    button {
+        width: 100%;
+    }
+    
+    .button-container {
+        flex-direction: column;
+    }
+}
+
+/* Success/Error pages */
+.result-container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 500px;
+}
+
+.result-container h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.result-container p {
+    color: #666;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.result-container a {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.result-container a:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+}

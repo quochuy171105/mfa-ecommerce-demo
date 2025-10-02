@@ -4,7 +4,8 @@ if (!$debug) {
     echo "<script>console.log = function(){};</script>";
 }
 ?>
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/security.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/security.js"></script>
+    <script src="../assets/js/face.js"></script>
 </body>
 </html>

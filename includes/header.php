@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['csrf'])) {
     $_SESSION['csrf'] = hash('sha256', random_bytes(32));
 }
@@ -10,6 +12,7 @@ if (!isset($_SESSION['csrf'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' cdn.jsdelivr.net">
-    <title>MFA E-Commerce Demo</title>
+    <title><?php echo isset($title) ? $title : 'MFA E-Commerce Demo'; ?></title>
+    <link rel="stylesheet" href="../assets/css/auth.css">
 </head>
 <body>
