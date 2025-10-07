@@ -19,9 +19,11 @@ CREATE TABLE IF NOT EXISTS otps (
 -- Tạo bảng faces
 CREATE TABLE IF NOT EXISTS faces (
     user_id INT PRIMARY KEY,
-    face_hash VARCHAR(64) NOT NULL,
+    face_hash VARCHAR(255) NULL,
+    face_descriptors TEXT NOT NULL DEFAULT '[]',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 
 -- Thêm index cho performance
 ALTER TABLE users ADD INDEX idx_email (email);

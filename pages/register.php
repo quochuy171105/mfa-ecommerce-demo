@@ -60,7 +60,7 @@ $csrf_token = gen_csrf();
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #646464ff 0%, #e57309 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;

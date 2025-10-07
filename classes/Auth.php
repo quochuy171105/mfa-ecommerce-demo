@@ -12,7 +12,7 @@ class Auth {
 
     private static function getSecret() {
         if (self::$jwt_secret === null) {
-            self::$jwt_secret = defined('JWT_SECRET') ? JWT_SECRET : 'your-jwt-secret-change-in-production';
+            self::$jwt_secret = defined('JWT_SECRET') ? JWT_SECRET : '123456789';
         }
         return self::$jwt_secret;
     }
