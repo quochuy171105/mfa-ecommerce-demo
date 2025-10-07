@@ -1,350 +1,196 @@
 <?php
-// Chọn MFA: Form radio (email OTP hoặc face), POST to respective handler.
-
+// THAY THẾ TOÀN BỘ CODE PHP CŨ BẰNG ĐOẠN NÀY
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../classes/Auth.php';
 
 start_secure_session();
 
-// Xử lý logout
+// Xử lý logout trước tiên
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     Auth::logout();
     header('Location: login.php');
     exit;
 }
 
-// Kiểm tra user đã đăng nhập chưa
+// BƯỚC 1: Kiểm tra xem người dùng đã đăng nhập chưa. Nếu chưa, về trang login.
 $auth = Auth::isAuthenticated();
 if (!$auth) {
     header('Location: login.php');
     exit;
 }
 
-$error_message = '';
-$success_message = '';
+// BƯỚC 2: Kiểm tra xem người dùng đã xác thực MFA chưa. Nếu rồi, vào trang success.
+// Đây chính là phần logic bị lỗi trước đây.
+if (isset($_SESSION['mfa_verified']) && $_SESSION['mfa_verified'] === true) {
+    header('Location: success.php');
+    exit;
+}
 
-// Xử lý form submission
+// Nếu code chạy đến đây, nghĩa là người dùng đã đăng nhập nhưng chưa xác thực MFA.
+// Chúng ta sẽ hiển thị các lựa chọn.
+$error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Kiểm tra CSRF token
     if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
         $error_message = 'Token bảo mật không hợp lệ';
     } else {
         $mfa_type = sanitize_input($_POST['mfa_type'] ?? '');
-        
-        if (empty($mfa_type) || !in_array($mfa_type, ['otp', 'face'])) {
-            $error_message = 'Vui lòng chọn phương thức xác thực';
-        } else {
-            // Lưu loại MFA vào session
+        if (in_array($mfa_type, ['otp', 'face'])) {
             $_SESSION['mfa_type'] = $mfa_type;
-            $_SESSION['mfa_step'] = 'verify';
-            
-            // Log MFA selection
-            error_log("MFA type selected: $mfa_type by user: " . $auth['email']);
-            
-            // Chuyển hướng đến trang xử lý tương ứng
-            $redirect = ($mfa_type === 'otp') ? 'otp.php' : 'face.php';
-            header("Location: $redirect");
+            // Chuyển hướng đến đúng trang của phương thức đã chọn
+            header("Location: {$mfa_type}.php");
             exit;
+        } else {
+            $error_message = 'Vui lòng chọn một phương thức xác thực hợp lệ.';
         }
     }
 }
 
-// Tạo CSRF token mới
 $csrf_token = gen_csrf();
-
-// Lấy thông tin user hiện tại
-$current_user = Auth::getCurrentUser();
+$user_email = $_SESSION['email'] ?? ($auth['email'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác Thực Đa Yếu Tố - Auth System</title>
+    <title>Chọn Phương Thức Xác Thực</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #646464ff;
+            --secondary-color: #e05d0bff;
+            --light-gray: #f8f9fa;
+            --dark-gray: #333;
+            --text-gray: #666;
         }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
         }
-
         .mfa-container {
             background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
             width: 100%;
             max-width: 500px;
+            animation: fadeIn 0.5s ease-out;
         }
-
-        .mfa-header {
-            text-align: center;
-            margin-bottom: 2rem;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .mfa-header h1 {
-            color: #333;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .mfa-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .user-info {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .user-info .email {
-            color: #667eea;
-            font-weight: 500;
-        }
-
-        .mfa-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
+        .mfa-header { text-align: center; margin-bottom: 2rem; }
+        .mfa-header h1 { color: var(--dark-gray); margin-bottom: 0.5rem; }
+        .mfa-header p { color: var(--text-gray); }
+        .mfa-header p strong { color: var(--primary-color); }
+        .mfa-options { display: flex; flex-direction: column; gap: 1rem; }
         .mfa-option {
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
             position: relative;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
         }
-
-        .mfa-option:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
+        .mfa-option:hover { border-color: var(--primary-color); }
         .mfa-option input[type="radio"] {
             position: absolute;
             opacity: 0;
+            width: 100%; height: 100%;
+            cursor: pointer;
         }
-
         .mfa-option input[type="radio"]:checked + .option-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
         }
-
-        .mfa-option input[type="radio"]:checked ~ .option-icon {
-            color: white;
-        }
-
         .option-content {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            transition: all 0.3s;
-            border-radius: 6px;
-            padding: 0.5rem;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
         }
-
-        .option-icon {
-            font-size: 2rem;
-            color: #667eea;
-            transition: color 0.3s;
-            min-width: 50px;
-            text-align: center;
-        }
-
-        .option-details h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-
-        .option-details p {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
+        .option-icon { font-size: 2.5rem; color: var(--primary-color); }
+        .option-details h3 { color: var(--dark-gray); margin-bottom: 0.25rem; }
+        .option-details p { color: var(--text-gray); font-size: 0.9rem; }
         .btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s;
+            width: 100%; padding: 15px; margin-top: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
         }
-
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #c33;
-        }
-
-        .success-message {
-            background: #efe;
-            color: #363;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #363;
-        }
-
-        .logout-link {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-
-        .logout-link a {
-            color: #666;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        .logout-link a:hover {
-            text-decoration: underline;
-        }
-
-        .security-note {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
-        }
+        .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .logout-link { text-align: center; margin-top: 1.5rem; }
+        .logout-link a { color: var(--text-gray); font-size: 0.9rem; text-decoration: none; }
+        .logout-link a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="mfa-container">
         <div class="mfa-header">
-            <h1>Xác Thực Bảo Mật</h1>
-            <p>Chọn phương thức xác thực để hoàn tất đăng nhập</p>
+            <h1>Yêu Cầu Xác Thực Bổ Sung</h1>
+            <p>Tài khoản <strong><?php echo htmlspecialchars($user_email); ?></strong> cần thêm một bước để đăng nhập.</p>
         </div>
-
-        <?php if ($current_user): ?>
-            <div class="user-info">
-                <p>Đăng nhập với tài khoản: <span class="email"><?php echo htmlspecialchars($current_user['email']); ?></span></p>
-            </div>
-        <?php endif; ?>
-
-        <div class="security-note">
-            <strong>Lưu ý bảo mật:</strong> Xác thực đa yếu tố giúp bảo vệ tài khoản của bạn khỏi truy cập trái phép.
-        </div>
-
+        
         <?php if ($error_message): ?>
-            <div class="error-message">
-                <?php echo htmlspecialchars($error_message); ?>
-            </div>
+            <div class="error-message" style="background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid #f44336;"><?php echo htmlspecialchars($error_message); ?></div>
         <?php endif; ?>
 
-        <?php if ($success_message): ?>
-            <div class="success-message">
-                <?php echo htmlspecialchars($success_message); ?>
-                <br><small>Đang chuyển hướng...</small>
-            </div>
-        <?php endif; ?>
-
-        <form method="POST" action="" id="mfaForm">
+        <form method="POST" action="mfa.php" id="mfaForm">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-
             <div class="mfa-options">
                 <label class="mfa-option">
                     <input type="radio" name="mfa_type" value="otp" required>
                     <div class="option-content">
-                        <div class="option-icon">✉️</div>
+                        <span class="option-icon">✉️</span>
                         <div class="option-details">
-                            <h3>Email OTP</h3>
-                            <p>Nhận mã xác thực 6 số qua email</p>
+                            <h3>Mã OTP qua Email</h3>
+                            <p>Nhận mã xác thực 6 số dùng một lần.</p>
                         </div>
                     </div>
                 </label>
-
                 <label class="mfa-option">
                     <input type="radio" name="mfa_type" value="face" required>
                     <div class="option-content">
-                        <div class="option-icon">👤</div>
+                        <span class="option-icon">👤</span>
                         <div class="option-details">
-                            <h3>Face Recognition</h3>
-                            <p>Xác thực bằng nhận diện khuôn mặt</p>
+                            <h3>Nhận diện khuôn mặt</h3>
+                            <p>Sử dụng camera để xác thực nhanh chóng.</p>
                         </div>
                     </div>
                 </label>
             </div>
-
-            <button type="submit" class="btn" id="continueBtn" disabled>
-                Tiếp Tục Xác Thực
-            </button>
+            <button type="submit" class="btn" id="continueBtn" disabled>Tiếp Tục</button>
         </form>
-
         <div class="logout-link">
-            <a href="?action=logout" onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
-                Đăng xuất và quay lại trang đăng nhập
-            </a>
+            <a href="?action=logout">Đây không phải tôi? Đăng xuất</a>
         </div>
     </div>
 
     <script>
-        // Enable/disable continue button based on selection
-        const radioButtons = document.querySelectorAll('input[name="mfa_type"]');
-        const continueBtn = document.getElementById('continueBtn');
+        document.addEventListener('DOMContentLoaded', () => {
+            const radioButtons = document.querySelectorAll('input[name="mfa_type"]');
+            const continueBtn = document.getElementById('continueBtn');
 
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', function() {
-                continueBtn.disabled = false;
-                const methodName = this.value === 'otp' ? 'Email OTP' : 'Face Recognition';
-                continueBtn.textContent = `Tiếp tục với ${methodName}`;
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    continueBtn.disabled = false;
+                });
+            });
+
+            document.getElementById('mfaForm').addEventListener('submit', () => {
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Đang chuyển hướng...';
             });
         });
-
-        // Form submission handling
-        document.getElementById('mfaForm').addEventListener('submit', function(e) {
-            if (continueBtn.disabled) {
-                e.preventDefault();
-                alert('Vui lòng chọn phương thức xác thực');
-                return;
-            }
-            
-            continueBtn.disabled = true;
-            continueBtn.textContent = 'Đang xử lý...';
-        });
-
-        // Auto-select first option if user has preference in session
-        // This could be enhanced based on user's previous choices
-        const firstOption = document.querySelector('input[name="mfa_type"]');
-        if (firstOption) {
-            // Optional: auto-focus first option but don't auto-select
-            firstOption.focus();
-        }
     </script>
 </body>
 </html>
