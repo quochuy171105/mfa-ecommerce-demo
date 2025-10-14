@@ -50,194 +50,79 @@ $csrf_token = gen_csrf();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Ký - Auth System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #646464ff 0%, #e57309 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .register-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .register-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .register-header h1 {
-            color: #333;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .register-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .password-requirements {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 0.5rem;
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #c33;
-        }
-        
-        .success-message {
-            background: #efe;
-            color: #363;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #363;
-        }
-        
-        .login-link {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-        
-        .login-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .login-link a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <title>LE.GICARFT | Đăng ký</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
 </head>
 <body>
-    <div class="register-container">
-        <div class="register-header">
+    <header>
+        <picture>
+            <img src="../../assets/images/logo.png" alt="LE.GICARFT Logo" class="logo">
+        </picture>
+    </header>
+
+    <main>
+        <section class="auth-container">
             <h1>Đăng Ký</h1>
-            <p>Tạo tài khoản mới</p>
-        </div>
-        
-        <?php if ($error_message): ?>
-            <div class="error-message">
-                <?php echo htmlspecialchars($error_message); ?>
-            </div>
-        <?php endif; ?>
-        
-        <?php if ($success_message): ?>
-            <div class="success-message">
-                <?php echo htmlspecialchars($success_message); ?>
-            </div>
-        <?php endif; ?>
-        
-        <form method="POST" action="" id="registerForm">
-            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-            
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" 
-                       id="email" 
-                       name="email" 
-                       required 
-                       autocomplete="email">
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Mật khẩu:</label>
-                <input type="password" 
-                       id="password" 
-                       name="password" 
-                       required 
-                       autocomplete="new-password">
-                <div class="password-requirements">
-                    Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+
+            <?php if (!empty($error_message)): ?>
+                <div class="alert alert-danger">
+                    <?php echo htmlspecialchars($error_message); ?>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="confirm_password">Xác nhận mật khẩu:</label>
-                <input type="password" 
-                       id="confirm_password" 
-                       name="confirm_password" 
-                       required 
-                       autocomplete="new-password">
-            </div>
-            
-            <button type="submit" class="btn">Đăng Ký</button>
-        </form>
-        
-        <div class="login-link">
+            <?php endif; ?>
+
+            <?php if (!empty($success_message)): ?>
+                <div class="alert alert-success">
+                    <?php echo htmlspecialchars($success_message); ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" action="register.php" autocomplete="on" id="registerForm">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Nhập email của bạn" 
+                        required
+                        value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu:</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Nhập mật khẩu" 
+                        required
+                        autocomplete="new-password">
+                    <div class="password-requirements">
+                        Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Xác nhận mật khẩu:</label>
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        placeholder="Xác nhận mật khẩu" 
+                        required
+                        autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="auth-btn">Đăng Ký</button>
+            </form>
+
             <p>Đã có tài khoản? <a href="login.php">Đăng nhập ngay</a></p>
-        </div>
-    </div>
-    
+        </section>
+    </main>
+
     <script>
         // Kiểm tra mật khẩu khớp nhau real-time
         document.getElementById('confirm_password').addEventListener('input', function() {
@@ -245,9 +130,9 @@ $csrf_token = gen_csrf();
             const confirmPassword = this.value;
             
             if (confirmPassword && password !== confirmPassword) {
-                this.style.borderColor = '#c33';
+                this.style.borderColor = '#dc3545';
             } else {
-                this.style.borderColor = '#ddd';
+                this.style.borderColor = '#ccc';
             }
         });
         
@@ -264,7 +149,7 @@ $csrf_token = gen_csrf();
                 isValid = false;
             }
             
-            this.style.borderColor = isValid && password ? '#363' : '#ddd';
+            this.style.borderColor = isValid && password ? '#28a745' : '#ccc';
         });
     </script>
 </body>

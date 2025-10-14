@@ -15,14 +15,13 @@ $user_id = $auth['user_id'];
 $hasFace = FaceAuth::hasFace($user_id);
 $message = $_GET['message'] ?? '';
 ?>
-
 <div class="loader-overlay" id="loader-overlay">
     <div class="loader-content">
         <div class="loader"></div>
         <p id="loader-text">Đang xử lý...</p>
     </div>
 </div>
-
+<link rel="stylesheet" href="../../assets/css/main.css">
 <div class="modern-face-container">
     <div class="video-wrapper">
         <video id="video" width="480" height="360" autoplay muted playsinline></video>
@@ -44,13 +43,9 @@ $message = $_GET['message'] ?? '';
         
         <div class="button-container">
         <?php if (!$hasFace): ?>
-            <button id="registerFace" class="btn btn-primary">
-                <span class="icon">👤</span> Đăng Ký
-            </button>
+            <button id="registerFace" class="btn btn-primary">Đăng Ký</button>
         <?php else: ?>
-            <button id="scanFace" class="btn btn-scan">
-                <span class="icon">📷</span> Quét Gương Mặt
-            </button>
+            <button id="scanFace" class="btn btn-scan">Quét Gương Mặt</button>
             <button id="registerAgain" class="btn btn-secondary">Đăng ký lại</button>
         <?php endif; ?>
         </div>
