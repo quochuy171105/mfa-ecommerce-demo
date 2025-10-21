@@ -1,1 +1,0 @@
-// JS chung: Form validation client-side, AJAX for OTP send.
