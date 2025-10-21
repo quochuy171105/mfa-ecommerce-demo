@@ -50,102 +50,239 @@ $user_email = $_SESSION['email'] ?? ($auth['email'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chọn Phương Thức Xác Thực</title>
     <style>
         :root {
-            --primary-color: #646464ff;
-            --secondary-color: #e05d0bff;
-            --light-gray: #f8f9fa;
-            --dark-gray: #333;
-            --text-gray: #666;
+            --primary-color: #646464;
+            --secondary-color: #e05d0b;
+            --bg-color: #e0e5ec;
+            --text-dark: #4a5568;
+            --text-light: #718096;
+            --shadow-light: #ffffff;
+            --shadow-dark: #a3b1c6;
+            --error-color: #e53e3e;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--bg-color);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
         }
+
         .mfa-container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            background: var(--bg-color);
+            padding: 3rem 2.5rem;
+            border-radius: 30px;
+            box-shadow:
+                12px 12px 24px var(--shadow-dark),
+                -12px -12px 24px var(--shadow-light);
             width: 100%;
-            max-width: 500px;
-            animation: fadeIn 0.5s ease-out;
+            max-width: 520px;
+            animation: fadeIn 0.6s ease-out;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
-        .mfa-header { text-align: center; margin-bottom: 2rem; }
-        .mfa-header h1 { color: var(--dark-gray); margin-bottom: 0.5rem; }
-        .mfa-header p { color: var(--text-gray); }
-        .mfa-header p strong { color: var(--primary-color); }
-        .mfa-options { display: flex; flex-direction: column; gap: 1rem; }
+
+        .mfa-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .mfa-header h1 {
+            color: var(--text-dark);
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            text-shadow:
+                2px 2px 4px var(--shadow-dark),
+                -2px -2px 4px var(--shadow-light);
+        }
+
+        .mfa-header p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .mfa-header p strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .mfa-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
         .mfa-option {
             position: relative;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            transition: all 0.2s;
             cursor: pointer;
         }
-        .mfa-option:hover { border-color: var(--primary-color); }
+
         .mfa-option input[type="radio"] {
             position: absolute;
             opacity: 0;
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             cursor: pointer;
+            z-index: 2;
         }
-        .mfa-option input[type="radio"]:checked + .option-content {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
-        }
+
         .option-content {
             display: flex;
             align-items: center;
             gap: 1.5rem;
-            padding: 1.5rem;
-            border: 2px solid transparent;
-            border-radius: 8px;
+            padding: 1.8rem;
+            background: var(--bg-color);
+            border-radius: 20px;
+            box-shadow:
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+            transition: all 0.3s ease;
         }
-        .option-icon { font-size: 2.5rem; color: var(--primary-color); }
-        .option-details h3 { color: var(--dark-gray); margin-bottom: 0.25rem; }
-        .option-details p { color: var(--text-gray); font-size: 0.9rem; }
+
+        .mfa-option:hover .option-content {
+            box-shadow:
+                6px 6px 12px var(--shadow-dark),
+                -6px -6px 12px var(--shadow-light);
+            transform: translateY(-2px);
+        }
+
+        .mfa-option input[type="radio"]:checked+.option-content {
+            box-shadow:
+                inset 6px 6px 12px var(--shadow-dark),
+                inset -6px -6px 12px var(--shadow-light);
+            transform: translateY(0);
+        }
+
+        .option-icon {
+            font-size: 2.5rem;
+            min-width: 60px;
+            text-align: center;
+            filter: drop-shadow(2px 2px 4px var(--shadow-dark));
+        }
+
+        .option-details h3 {
+            color: var(--text-dark);
+            font-size: 1.15rem;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .option-details p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
         .btn {
-            width: 100%; padding: 15px; margin-top: 2rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; border: none; border-radius: 8px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            color: var(--text-dark);
+            border: none;
+            border-radius: 15px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow:
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+            transition: all 0.3s ease;
         }
-        .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
-        .logout-link { text-align: center; margin-top: 1.5rem; }
-        .logout-link a { color: var(--text-gray); font-size: 0.9rem; text-decoration: none; }
-        .logout-link a:hover { text-decoration: underline; }
+
+        .btn:hover:not(:disabled) {
+            box-shadow:
+                6px 6px 12px var(--shadow-dark),
+                -6px -6px 12px var(--shadow-light);
+            transform: translateY(-2px);
+        }
+
+        .btn:active:not(:disabled) {
+            box-shadow:
+                inset 4px 4px 8px var(--shadow-dark),
+                inset -4px -4px 8px var(--shadow-light);
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: var(--bg-color);
+            color: var(--error-color);
+            padding: 14px 18px;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            box-shadow:
+                inset 3px 3px 6px rgba(229, 62, 62, 0.1),
+                inset -3px -3px 6px var(--shadow-light),
+                4px 4px 8px var(--shadow-dark);
+            border-left: 4px solid var(--error-color);
+        }
+
+        .logout-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .logout-link a {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .logout-link a:hover {
+            color: var(--primary-color);
+        }
     </style>
 </head>
+
 <body>
     <div class="mfa-container">
         <div class="mfa-header">
             <h1>Yêu Cầu Xác Thực Bổ Sung</h1>
             <p>Tài khoản <strong><?php echo htmlspecialchars($user_email); ?></strong> cần thêm một bước để đăng nhập.</p>
         </div>
-        
+
         <?php if ($error_message): ?>
-            <div class="error-message" style="background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid #f44336;"><?php echo htmlspecialchars($error_message); ?></div>
+            <div class="error-message">
+                <?php echo htmlspecialchars($error_message); ?>
+            </div>
         <?php endif; ?>
 
         <form method="POST" action="mfa.php" id="mfaForm">
-            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+
             <div class="mfa-options">
                 <label class="mfa-option">
                     <input type="radio" name="mfa_type" value="otp" required>
@@ -157,6 +294,7 @@ $user_email = $_SESSION['email'] ?? ($auth['email'] ?? '');
                         </div>
                     </div>
                 </label>
+
                 <label class="mfa-option">
                     <input type="radio" name="mfa_type" value="face" required>
                     <div class="option-content">
@@ -168,8 +306,10 @@ $user_email = $_SESSION['email'] ?? ($auth['email'] ?? '');
                     </div>
                 </label>
             </div>
+
             <button type="submit" class="btn" id="continueBtn" disabled>Tiếp Tục</button>
         </form>
+
         <div class="logout-link">
             <a href="?action=logout">Đây không phải tôi? Đăng xuất</a>
         </div>
@@ -193,4 +333,5 @@ $user_email = $_SESSION['email'] ?? ($auth['email'] ?? '');
         });
     </script>
 </body>
+
 </html>

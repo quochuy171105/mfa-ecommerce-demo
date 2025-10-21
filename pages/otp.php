@@ -102,72 +102,202 @@ ob_end_flush();
     <title>Xác Thực OTP</title>
     <style>
         :root {
-            --primary-color: #646464ff;
+            --primary-color: #646464;
             --secondary-color: #e57309;
-            --light-gray: #f1f5f9;
-            --dark-gray: #333;
-            --text-gray: #666;
+            --bg-color: #e0e5ec;
+            --text-dark: #4a5568;
+            --text-light: #718096;
+            --shadow-light: #ffffff;
+            --shadow-dark: #a3b1c6;
+            --error-color: #e53e3e;
+            --success-color: #48bb78;
         }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--bg-color);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
         }
+        
         .otp-container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            background: var(--bg-color);
+            padding: 3rem 2.5rem;
+            border-radius: 30px;
+            box-shadow: 
+                12px 12px 24px var(--shadow-dark),
+                -12px -12px 24px var(--shadow-light);
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             text-align: center;
-            animation: fadeIn 0.5s ease-out;
+            animation: fadeIn 0.6s ease-out;
         }
+        
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .icon { font-size: 3rem; margin-bottom: 1rem; color: var(--primary-color); }
-        h1 { color: var(--dark-gray); margin-bottom: 0.5rem; }
-        .instructions { color: var(--text-gray); margin-bottom: 2rem; }
-        .instructions strong { color: var(--primary-color); }
-        .otp-inputs { display: flex; justify-content: center; gap: 10px; margin-bottom: 2rem; }
+        
+        .icon { 
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(3px 3px 6px var(--shadow-dark));
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        h1 { 
+            color: var(--text-dark);
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            text-shadow: 
+                2px 2px 4px var(--shadow-dark),
+                -2px -2px 4px var(--shadow-light);
+        }
+        
+        .instructions { 
+            color: var(--text-light);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+        
+        .instructions strong { 
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .otp-inputs { 
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 2.5rem;
+        }
+        
         .otp-input {
-            width: 50px; height: 60px;
-            font-size: 2rem; text-align: center;
-            border: 2px solid #ddd; border-radius: 10px;
-            transition: all 0.2s;
+            width: 55px;
+            height: 65px;
+            font-size: 1.8rem;
+            text-align: center;
+            background: var(--bg-color);
+            border: none;
+            border-radius: 15px;
+            color: var(--text-dark);
+            font-weight: 600;
+            box-shadow: 
+                inset 6px 6px 12px var(--shadow-dark),
+                inset -6px -6px 12px var(--shadow-light);
+            transition: all 0.3s ease;
         }
+        
         .otp-input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
             outline: none;
+            box-shadow: 
+                inset 4px 4px 8px var(--shadow-dark),
+                inset -4px -4px 8px var(--shadow-light),
+                0 0 0 3px rgba(100, 100, 100, 0.15);
+            transform: scale(1.05);
         }
+        
         .btn {
-            width: 100%; padding: 15px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; border: none; border-radius: 8px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
+            width: 100%; 
+            padding: 16px;
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            color: var(--text-dark);
+            border: none; 
+            border-radius: 15px;
+            font-size: 1.05rem; 
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+            transition: all 0.3s ease;
         }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
-        .resend-container { margin-top: 1.5rem; color: var(--text-gray); }
+        
+        .btn:hover:not(:disabled) { 
+            box-shadow: 
+                6px 6px 12px var(--shadow-dark),
+                -6px -6px 12px var(--shadow-light);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active:not(:disabled) {
+            box-shadow: 
+                inset 4px 4px 8px var(--shadow-dark),
+                inset -4px -4px 8px var(--shadow-light);
+            transform: translateY(0);
+        }
+        
+        .btn:disabled { 
+            opacity: 0.5;
+            cursor: not-allowed; 
+        }
+        
+        .resend-container { 
+            margin-top: 2rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        
         #resend-form { display: inline; }
+        
         #resend-btn {
-            background: none; border: none; color: var(--primary-color);
-            font-weight: 600; cursor: pointer; text-decoration: underline;
-            font-size: 0.9rem;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.95rem;
+            transition: color 0.3s;
         }
-        #resend-btn:disabled { color: #aaa; cursor: not-allowed; text-decoration: none; }
-        .message { padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid; }
-        .error-message { background: #ffebee; color: #c62828; border-color: #f44336; }
-        .success-message { background: #e8f5e9; color: #2e7d32; border-color: #4CAF50; }
+        
+        #resend-btn:hover:not(:disabled) {
+            color: var(--secondary-color);
+        }
+        
+        #resend-btn:disabled { 
+            color: var(--text-light);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #timer {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        
+        .message { 
+            padding: 14px 18px;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            box-shadow: 
+                4px 4px 8px var(--shadow-dark),
+                -4px -4px 8px var(--shadow-light);
+        }
+        
+        .error-message { 
+            background: var(--bg-color);
+            color: var(--error-color);
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .success-message { 
+            background: var(--bg-color);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
     </style>
 </head>
 <body>
@@ -176,27 +306,41 @@ ob_end_flush();
         <h1>Xác thực OTP</h1>
         <p class="instructions">Một mã gồm 6 chữ số đã được gửi đến <strong><?php echo htmlspecialchars($user_email); ?></strong></p>
 
-        <?php if ($error_message): ?><div class="message error-message"><?php echo htmlspecialchars($error_message); ?></div><?php endif; ?>
-        <?php if ($success_message): ?><div class="message success-message"><?php echo htmlspecialchars($success_message); ?></div><?php endif; ?>
+        <?php if ($error_message): ?>
+        <div class="message error-message">
+            <?php echo htmlspecialchars($error_message); ?>
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($success_message): ?>
+        <div class="message success-message">
+            <?php echo htmlspecialchars($success_message); ?>
+        </div>
+        <?php endif; ?>
 
         <form method="POST" action="verify.php" id="otp-form">
-            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-            <input type="hidden" name="nonce" value="<?php echo $nonce; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+            <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce); ?>">
             <input type="hidden" name="otp" id="otp-full">
+            
             <div class="otp-inputs" id="otp-inputs">
-                <?php for ($i = 0; $i < 6; $i++): ?>
                 <input type="tel" class="otp-input" maxlength="1" pattern="[0-9]" required>
-                <?php endfor; ?>
+                <input type="tel" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                <input type="tel" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                <input type="tel" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                <input type="tel" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                <input type="tel" class="otp-input" maxlength="1" pattern="[0-9]" required>
             </div>
+            
             <button type="submit" class="btn" id="verify-btn">Xác Nhận</button>
         </form>
 
         <div class="resend-container">
-            <span>Không nhận được mã?</span>
-            <form method="POST" action="otp.php" id="resend-form" style="display: inline;">
-                 <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-                 <input type="hidden" name="action" value="resend">
-                 <button type="submit" id="resend-btn" disabled>Gửi lại</button>
+            <span>Không nhận được mã? </span>
+            <form method="POST" action="otp.php" id="resend-form">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                <input type="hidden" name="action" value="resend">
+                <button type="submit" id="resend-btn" disabled>Gửi lại</button>
             </form>
             <span id="timer">(1:00)</span>
         </div>
