@@ -1,5 +1,4 @@
 <?php
-// --- KHÔNG có khoảng trắng trước <?php ---
 ob_start();
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../classes/Auth.php';
