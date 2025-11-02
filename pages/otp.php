@@ -1,6 +1,4 @@
 <?php
-// Form input OTP, resend OTP, POST to verify.php for verify.
-
 ob_start();
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../classes/Auth.php';
@@ -25,7 +23,7 @@ $error_message = $_SESSION['verify_error'] ?? '';
 $success_message = '';
 unset($_SESSION['verify_error']); // Xóa lỗi sau khi hiển thị
 
-// Hàm gửi email OTP (giữ nguyên logic của bạn)
+// Hàm gửi email OTP 
 if (!function_exists('sendOtpMail')) {
     function sendOtpMail($toEmail, $otp) {
         global $smtp;

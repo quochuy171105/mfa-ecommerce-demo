@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Thiết lập canvas
     const ctx = canvas.getContext('2d');
 
     console.log('Đang tải models...');
@@ -377,36 +376,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function detectHeadMovement() {
         const samples = [];
         const requiredSamples = 10; // Lấy 10 mẫu trong 1 giây
-
         showMessage('Vui lòng từ từ quay đầu sang trái và phải...', 'info');
-
         for (let i = 0; i < requiredSamples; i++) {
             const detection = await faceapi
                 .detectSingleFace(video)
                 .withFaceLandmarks();
-
             if (!detection) {
                 throw new Error('Mất dấu khuôn mặt. Vui lòng giữ mặt trong khung hình.');
             }
-
             // Lấy tọa độ mũi (nose tip) - điểm 30
             const nose = detection.landmarks.positions[30];
             samples.push({ x: nose.x, y: nose.y, time: Date.now() });
-
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-
         // Tính toán mức độ di chuyển
         const movementX = calculateMovementRange(samples.map(s => s.x));
         const movementY = calculateMovementRange(samples.map(s => s.y));
-
         console.log(`Movement detected - X: ${movementX.toFixed(2)}px, Y: ${movementY.toFixed(2)}px`);
-
         // Yêu cầu di chuyển tối thiểu 30px theo trục X (quay đầu)
         if (movementX < 30) {
             throw new Error('Không phát hiện chuyển động. Vui lòng từ từ quay đầu sang trái và phải.');
         }
-
         return true;
     }
 
