@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     pass_hash VARCHAR(255) NOT NULL
 );
-
+ALTER TABLE users ADD INDEX idx_email (email);
+ALTER TABLE users ADD COLUMN last_login DATETIME NULL;
 -- Tạo bảng otps
 CREATE TABLE IF NOT EXISTS otps (
     user_id INT NOT NULL,
@@ -15,7 +16,7 @@ CREATE TABLE IF NOT EXISTS otps (
     nonce VARCHAR(32) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
+ALTER TABLE otps ADD INDEX idx_user_id (user_id);
 -- Tạo bảng faces
 CREATE TABLE IF NOT EXISTS faces (
     user_id INT PRIMARY KEY,
@@ -23,10 +24,4 @@ CREATE TABLE IF NOT EXISTS faces (
     face_descriptors TEXT NOT NULL DEFAULT '[]',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-
--- Thêm index cho performance
-ALTER TABLE users ADD INDEX idx_email (email);
-ALTER TABLE otps ADD INDEX idx_user_id (user_id);
 ALTER TABLE faces ADD INDEX idx_user_id (user_id);
-ALTER TABLE users ADD COLUMN last_login DATETIME NULL;

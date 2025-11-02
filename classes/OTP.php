@@ -1,11 +1,8 @@
 <?php
-// Model OTP: Gen OTP (random 6-digit), encrypt AES, send email via PHPMailer, verify with expiry.
-// Gen/store/verify OTP (AES encrypt, nonce, expiry 5p, insert otps table).
-
-require_once __DIR__ . '/../config/database.php'; // Global $pdo
-require_once __DIR__ . '/../config/app.php'; // AES_KEY
-require_once __DIR__ . '/../includes/security.php'; // encrypt_aes, gen_otp, gen_nonce
-require_once __DIR__ . '/../includes/validation.php'; // validate_otp
+require_once __DIR__ . '/../config/database.php'; 
+require_once __DIR__ . '/../config/app.php'; 
+require_once __DIR__ . '/../includes/security.php'; 
+require_once __DIR__ . '/../includes/validation.php';
 
 class OTP {
     /**
@@ -16,16 +13,13 @@ class OTP {
         try {
             $otp = gen_otp(); // 6 digits
             $nonce = bin2hex(gen_nonce(16));
-            $expiry = date('Y-m-d H:i:s', time() + 300); // 5 min
-            
-            $encrypted_otp = encrypt_aes($otp, AES_KEY);
-            
+            $expiry = date('Y-m-d H:i:s', time() + 300); // 5 min          
+            $encrypted_otp = encrypt_aes($otp, AES_KEY);          
             $stmt = $pdo->prepare("
                 INSERT INTO otps (user_id, encrypted_otp, expiry, nonce) 
                 VALUES (?, ?, ?, ?)
             ");
             $stmt->execute([$user_id, $encrypted_otp, $expiry, $nonce]);
-            
             return [
                 'success' => true,
                 'otp' => $otp, // Plain for email

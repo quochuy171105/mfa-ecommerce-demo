@@ -1,5 +1,4 @@
 <?php
-// THAY THẾ TOÀN BỘ CODE PHP CŨ BẰNG ĐOẠN NÀY
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../classes/Auth.php';
 
@@ -20,7 +19,6 @@ if (!$auth) {
 }
 
 // BƯỚC 2: Kiểm tra xem người dùng đã xác thực MFA chưa. Nếu rồi, vào trang success.
-// Đây chính là phần logic bị lỗi trước đây.
 if (isset($_SESSION['mfa_verified']) && $_SESSION['mfa_verified'] === true) {
     header('Location: success.php');
     exit;

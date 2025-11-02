@@ -1,9 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['csrf'])) {
-    $_SESSION['csrf'] = hash('sha256', random_bytes(32));
-}
-$nonce = bin2hex(random_bytes(16)); // Nonce chống replay
+$nonce = bin2hex(random_bytes(16)); 
 ?>
 <!DOCTYPE html>
 <html lang="en">

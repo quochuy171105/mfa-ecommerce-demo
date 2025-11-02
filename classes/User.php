@@ -1,7 +1,5 @@
 <?php
-// Model User: Methods cho register (hash pass, insert DB), login verify.
-
-require_once __DIR__ . '/../config/database.php'; // Sử dụng global $pdo
+require_once __DIR__ . '/../config/database.php'; 
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/validation.php';
 

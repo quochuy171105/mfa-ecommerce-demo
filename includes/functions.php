@@ -1,6 +1,4 @@
 <?php
-// Hàm chung: Generate CSRF, rate limit check, input sanitization.
-
 /**
  * Làm sạch input từ user
  */
@@ -15,11 +13,8 @@ function check_rate_limit($action = 'default') {
     if (!isset($_SESSION['rate_limit'])) {
         $_SESSION['rate_limit'] = [];
     }
-    
     $current_time = time();
     $rate_key = $action . '_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-    
-    // Xóa các attempt cũ hơn 1 phút
     if (isset($_SESSION['rate_limit'][$rate_key])) {
         $_SESSION['rate_limit'][$rate_key] = array_filter(
             $_SESSION['rate_limit'][$rate_key], 
@@ -30,31 +25,31 @@ function check_rate_limit($action = 'default') {
     } else {
         $_SESSION['rate_limit'][$rate_key] = [];
     }
-    
-    // Kiểm tra số lần thử
     if (count($_SESSION['rate_limit'][$rate_key]) >= 5) {
         return false; // Vượt quá limit
     }
-    
-    // Thêm attempt hiện tại
     $_SESSION['rate_limit'][$rate_key][] = $current_time;
     return true;
 }
 
 /**
- * Tạo CSRF token
+ * Tạo CSRF token nếu chưa tồn tại
  */
 function gen_csrf() {
-    $token = bin2hex(random_bytes(32));
-    $_SESSION['csrf_token'] = $token;
-    return $token;
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
 }
 
 /**
  * Xác minh CSRF token
  */
 function verify_csrf($token) {
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+    if (empty($_SESSION['csrf_token']) || empty($token)) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
 }
 
 /**

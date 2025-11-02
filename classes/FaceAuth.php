@@ -1,9 +1,8 @@
 <?php
-// Class FaceAuth: Store/verify face descriptor (128 dims euclidean distance, threshold 0.4, multiple 3 for register), hash SHA-256 before store, rate/CSRF in verify.
-// Lưu ý: Dùng PDO global từ database.php, hash_equals chống timing, log error.
 
-require_once __DIR__ . '/../config/database.php'; // Global $pdo
-require_once __DIR__ . '/../includes/functions.php'; // check_rate_limit, verify_csrf
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php'; 
 
 class FaceAuth
 {
@@ -13,38 +12,27 @@ class FaceAuth
     {
         global $pdo;
         try {
-            // Decode descriptor mới từ client
             $incoming = json_decode($incoming_descriptor_json, true);
             if (!is_array($incoming) || empty($incoming) || (isset($incoming[0]) && is_array($incoming[0]))) {
                 error_log("verifyFace: Invalid incoming single descriptor for user_id=$user_id");
                 return false;
             }
 
-            // Lấy stored descriptors từ DB
             $stmt = $pdo->prepare("SELECT face_descriptors FROM faces WHERE user_id = ?");
             $stmt->execute([$user_id]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // SỬA LẠI: Bỏ hoàn toàn phần kiểm tra hash
-            // if (!$row || empty($row['face_hash']) || !hash_equals($row['face_hash'], $incoming_hash)) {
-            //     error_log("verifyFace: Hash mismatch or no data for user_id=$user_id");
-            //     return false;
-            // }
-
-            // SỬA LẠI: Chỉ cần kiểm tra có descriptor hay không
             if (!$row || empty($row['face_descriptors'])) {
                 error_log("verifyFace: No face data found for user_id=$user_id");
                 return false;
             }
 
-            // Decode stored descriptors
             $stored = json_decode($row['face_descriptors'], true);
             if (!is_array($stored) || empty($stored)) {
                 error_log("verifyFace: Invalid stored descriptor for user_id=$user_id. Raw data: " . $row['face_descriptors']);
                 return false;
             }
 
-            // SỬA LẠI: Logic chuẩn hóa để luôn làm việc với một mảng các descriptors
             $storedDescriptors = [];
             if (isset($stored[0]) && is_array($stored[0])) {
                 $storedDescriptors = $stored;
@@ -75,7 +63,7 @@ class FaceAuth
         global $pdo;
         try {
             error_log("Đang lưu vào DB cho user_id=$user_id, data=$face_descriptors_json");
-            // THÊM: Validate JSON đầu vào
+            // Validate JSON đầu vào
             $descriptors = json_decode($face_descriptors_json, true);
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($descriptors)) {
                 error_log("storeFace: Invalid JSON format for user_id=$user_id");
@@ -92,7 +80,6 @@ class FaceAuth
             );
             $result = $stmt->execute([$user_id, $face_hash, $face_descriptors_json]);
             if (!$result) {
-                // THÊM DÒNG NÀY ĐỂ XEM LỖI CHI TIẾT
                 error_log("Lỗi PDO: " . print_r($stmt->errorInfo(), true));
             }
             if ($result) {

@@ -1,6 +1,4 @@
 <?php
-// Form đăng ký: Collect email/pass, call User::register, redirect to login.
-
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../classes/User.php';
 
@@ -22,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = sanitize_input($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
             $confirm_password = $_POST['confirm_password'] ?? '';
-
             // Kiểm tra mật khẩu xác nhận
             if ($password !== $confirm_password) {
                 $error_message = 'Mật khẩu xác nhận không khớp';

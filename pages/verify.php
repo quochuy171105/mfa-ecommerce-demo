@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     switch ($mfa_type) {
         case 'otp':
-            // --- LOGIC OTP ĐÃ ĐƯỢC KHÔI PHỤC ---
             $input_otp = trim($_POST['otp'] ?? '');
             $nonce = trim($_POST['nonce'] ?? '');
 
@@ -75,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'face':
-            // --- LOGIC FACE VẪN GIỮ NGUYÊN ---
             ob_clean();
             header('Content-Type: application/json; charset=utf-8');
 
@@ -94,14 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'message' => 'csrf_invalid'
                 ]);
             }
-
-            // Nhớ bật lại khi deploy
-
             if (!check_rate_limit('face_verify')) {
                 send_json_response(['status' => 'error', 'message' => 'rate_limit_exceeded']);
             }
-
-
             if ($register) {
                 if (FaceAuth::storeFace($user_id, $face_descriptors_json)) {
                     $_SESSION['face_register'] = true;
@@ -112,11 +105,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     send_json_response(['status' => 'error', 'message' => 'register_failed']);
                 }
-            } else { // Xử lý xác thực
+            } else { 
                 if (!FaceAuth::hasFace($user_id)) {
                     send_json_response(['status' => 'error', 'message' => 'register_first']);
                 }
-
                 $result = FaceAuth::verifyFace($user_id, $face_descriptors_json, $csrf_token_received);
                 if ($result) {
                     $_SESSION['mfa_verified'] = true;
@@ -135,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
     }
 } else {
-    // Xử lý GET request (chuyển hướng người dùng)
+    // Xử lý chuyển hướng người dùng)
     if ($mfa_type === 'otp') {
         header('Location: otp.php');
     } else {
