@@ -1,1 +1,20 @@
-# Bảo mật: Enforce HTTPS, block access to sensitive files, CSRF headers.
+RewriteEngine On
+
+# Enforce HTTPS (uncomment sau khi fix cert localhost)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Block access to sensitive folders (Deny from all equivalent)
+RewriteRule ^config($|/) - [F,L]
+RewriteRule ^includes($|/) - [F,L]
+RewriteRule ^logs($|/) - [F,L]
+
+# Security headers
+Header always set Content-Security-Policy "default-src 'self' cdn.jsdelivr.net"
+Header always set X-Frame-Options "DENY"
+Header always set X-Content-Type-Options "nosniff"
+
+# Clean URLs (optional)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ pages/$1.php [QSA,L]

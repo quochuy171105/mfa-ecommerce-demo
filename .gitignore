@@ -1,0 +1,9 @@
+# Ignore Composer vendor directory
+/vendor/
+
+# Other common ignores (optional)
+logs/*
+!logs/.gitkeep  # Nếu bạn muốn giữ folder logs rỗng
+.DS_Store  # Cho Mac, nhưng OK cho Windows
+Thumbs.db  # Cho Windows thumbnails
+.env
