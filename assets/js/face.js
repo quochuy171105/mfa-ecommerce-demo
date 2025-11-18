@@ -30,12 +30,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     let stream = null;
     let lastScanTime = 0;
     let detectionInterval = null;
+    let isMessageLocked = false;
     let consecutiveNoFaceFrames = 0;
     const DEBOUNCE_MS = 2000;
     const MAX_NO_FACE_FRAMES = 5; // Cho phép 5 frame liên tiếp không có mặt trước khi cảnh báo
 
     // Hàm hiển thị thông báo
-    function showMessage(text, type = 'info') {
+    function showMessage(text, type = 'info', force = false) {
+        // 1. Kiểm tra "công tắc": Nếu đang khóa (isMessageLocked = true) VÀ không bị ép buộc (force = false) -> thì không làm gì cả.
+        if (isMessageLocked && !force) {
+            return;
+        }
+
+        // 2. Nếu không bị khóa, hoặc bị ép buộc, thì hiển thị thông báo như bình thường.
         const messageContainer = document.getElementById('message-container');
         if (!messageContainer) return;
 
@@ -337,41 +344,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function handleScan() {
-        if (scanButton) scanButton.disabled = true;
-        stopFaceDetection();
-
-        try {
-            const descriptor = await captureSingleDescriptor();
-
-            showMessage('Đang xác thực...', 'info');
-            const result = await sendToServer(descriptor, false);
-
-            if (result.status === 'success' && result.message === 'verified') {
-                showMessage('✓ Xác thực thành công!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'success.php';
-                }, 1000);
-            } else {
-                if (result.message === 'register_first') {
-                    showMessage('⚠ Bạn chưa đăng ký khuôn mặt. Vui lòng đăng ký trước.', 'warning');
-                    setTimeout(() => window.location.reload(), 2000);
-                } else if (result.message === 'no_match') {
-                    showMessage('❌ Khuôn mặt không khớp. Vui lòng thử lại.', 'error');
-                    setTimeout(() => startFaceDetection(), 2000);
-                } else {
-                    throw new Error(JSON.stringify(result, null, 2));
-                }
-            }
-        } catch (err) {
-            console.error('Lỗi quét:', err.message);
-            showMessage('❌ Lỗi quét: ' + err.message, 'error');
-            setTimeout(() => startFaceDetection(), 2000);
-        } finally {
-            if (scanButton) scanButton.disabled = false;
-        }
-    }
-
     // Hàm kiểm tra chuyển động đầu (Head Movement Detection)
     async function detectHeadMovement() {
         const samples = [];
@@ -408,13 +380,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Hàm kiểm tra nhấp nháy mắt (Blink Detection)
     async function detectBlink() {
-        showMessage('👁️ Vui lòng nhấp nháy mắt 2 lần...', 'info');
+        isMessageLocked = true; // Khóa thông báo
+        showMessage('👁️ Vui lòng nhấp nháy mắt 2 lần...', 'info', true);
 
         let blinkCount = 0;
         let lastBlinkTime = 0;
         const requiredBlinks = 2;
-        const maxTime = 5000; // 5 giây
+        const maxTime = 7000; // Tăng thời gian chờ lên 7 giây
         const startTime = Date.now();
+        const BLINK_EAR_THRESHOLD = 0.28; // Tăng ngưỡng nhận diện
 
         while (blinkCount < requiredBlinks && (Date.now() - startTime) < maxTime) {
             const detection = await faceapi
@@ -422,27 +396,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .withFaceLandmarks();
 
             if (!detection) {
-                throw new Error('Mất dấu khuôn mặt.');
+                // Không ném lỗi ngay, chỉ hiển thị thông báo
+                showMessage('Giữ khuôn mặt trong khung hình', 'warning', true);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                continue;
             }
 
             // Tính Eye Aspect Ratio (EAR)
             const leftEye = getEyeAspectRatio(detection.landmarks.getLeftEye());
             const rightEye = getEyeAspectRatio(detection.landmarks.getRightEye());
             const avgEAR = (leftEye + rightEye) / 2;
+            
+            // QUAN TRỌNG: Dòng log để debug
+            console.log('Tỷ lệ EAR hiện tại:', avgEAR.toFixed(3)); 
 
-            // EAR < 0.2 = mắt đang nhắm
-            if (avgEAR < 0.2 && (Date.now() - lastBlinkTime) > 300) {
+            // EAR < ngưỡng = mắt đang nhắm
+            if (avgEAR < BLINK_EAR_THRESHOLD && (Date.now() - lastBlinkTime) > 400) { // Tăng debounce time
                 blinkCount++;
                 lastBlinkTime = Date.now();
-                console.log(`Blink detected! Count: ${blinkCount}`);
+                console.log(`Phát hiện nháy mắt! Số lần: ${blinkCount}`);
+                showMessage(`👁️ Đã nháy mắt: ${blinkCount}/${requiredBlinks}`, 'info', true);
 
                 // Visual feedback
                 canvas.style.borderColor = '#48bb78';
                 setTimeout(() => { canvas.style.borderColor = 'transparent'; }, 200);
             }
 
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 120)); // Tăng thời gian chờ giữa các lần check
         }
+        
+        isMessageLocked = false; // Mở khóa thông báo
 
         if (blinkCount < requiredBlinks) {
             throw new Error('Không phát hiện đủ số lần nhấp nháy mắt. Vui lòng thử lại.');
@@ -478,7 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             // BƯỚC 1: Kiểm tra liveness (chọn 1 trong 2 hoặc kết hợp)
-            // await detectBlink();           // Nhấp nháy mắt
+             await detectBlink();           // Nhấp nháy mắt
             await detectHeadMovement();      // Quay đầu
 
             showMessage('✓ Xác thực người thật thành công!', 'success');
@@ -509,10 +492,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (err) {
             console.error('Lỗi quét:', err.message);
-            showMessage('❌ ' + err.message, 'error');
+            isMessageLocked = false; // Mở khóa nếu có lỗi
+            showMessage('❌ ' + err.message, 'error', true);
             setTimeout(() => startFaceDetection(), 2000);
         } finally {
             if (scanButton) scanButton.disabled = false;
+            isMessageLocked = false; // Đảm bảo luôn mở khóa
         }
     }
 

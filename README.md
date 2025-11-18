@@ -1,7 +1,6 @@
-
 # MFA E-Commerce Demo
 
-Hệ thống xác thực đa yếu tố (Multi-Factor Authentication) cho ứng dụng web thương mại điện tử, hỗ trợ xác thực qua OTP email và nhận diện khuôn mặt.
+Hệ thống xác thực đa yếu tố (Multi-Factor Authentication) cho ứng dụng web, hỗ trợ xác thực qua OTP email và nhận diện khuôn mặt.
 
 ---
 
